@@ -1,8 +1,70 @@
-import React, { useState } from "react";
+import React, { useState ,useRef} from "react";
 import Header from "./Header";
+import checkValidData from "../utils/validate";
+import { auth } from "../utils/firebase.js";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+
 
 const Login = () => {
-    const [isSignInForm,setIsSignInForm] = useState();
+    const [isSignInForm, setIsSignInForm] = useState();
+    const navigate = useNavigate();
+    const email = useRef(null);
+    const password = useRef(null);
+    const name = useRef(null);
+    const [errorMessage,setErrorMessage] = useState(null);
+
+    const handleButtonclick = () => {
+        //validating the data
+        const message = checkValidData(email.current.value, password.current.value);
+
+        //setting error Message
+        setErrorMessage(message);
+
+        if (message) return;
+        
+        if (!isSignInForm) {
+            //sign up logic
+            createUserWithEmailAndPassword(
+              auth,
+              email.current.value,
+              password.current.value
+            )
+              .then((userCredential) => {
+                  console.log("Signed up:", userCredential.user);
+                  navigate("/browse");
+              })
+              .catch((error) => {
+                console.error(error);
+                  setErrorMessage("Already an User Please Sign In!");
+                  navigate("/browse");
+              });
+          
+        }
+        else {
+            //sign in Logic
+            signInWithEmailAndPassword(
+              auth,
+              email.current.value,
+              password.current.value
+            )
+              .then((userCredential) => {
+                // Signed in
+                const user = userCredential.user;
+                  // ...
+                  console.log(user);
+              })
+              .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                  setErrorMessage("Please Sign Up First!");
+              });
+        }
+    }
+
     const toggleSignInForm = () => {
         setIsSignInForm(!isSignInForm);
     }
@@ -15,39 +77,42 @@ const Login = () => {
           alt="Logo"
         />
       </div>
-      <form
+          <form onSubmit={(e) => {
+              e.preventDefault();
+      }}
         action="#"
         className=" bg-black bg-opacity-60 w-3/12 p-12 my-36 absolute mx-auto right-0 left-0 text-white"
       >
         <h1 className="font-bold text-3xl">
           {isSignInForm ? " Sign In" : "Sign Up"}
-        </h1>
+              </h1>
+
+
+              {/**shown after the sing up */}
         {!isSignInForm && (
-          <div><input
+                  <div><input
+                      ref={name}
             type="text"
-            placeholder="First Name"
+            placeholder="Full Name"
             className="p-4 m-2 w-full bg-gray-700"
                   />
-            <input
-            type="text"
-            placeholder="Last Name"
-            className="p-4 m-2 w-full bg-gray-700"
-                      />
             </div>
         )}
 
-        <input
+        <input ref={email}
           type="text"
           placeholder="Email or Phone"
           className="p-4 m-2 w-full bg-gray-700"
         />
-        <input
+        <input ref={password}
           type="password"
           placeholder="Password"
           className="p-4 m-2 w-full bg-gray-700"
         />
 
-        <button className="p-2 m-2 bg-red-700 w-full rounded-lg">
+              <p className="text-red-500 px-2 font-bold text-lg">{errorMessage}</p>
+
+        <button className="p-2 m-2 bg-red-700 w-full rounded-lg" onClick={handleButtonclick}>
           {isSignInForm ? "Sign in" : "Sign Up"}
         </button>
         <p
