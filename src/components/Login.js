@@ -6,12 +6,12 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+
 
 
 const Login = () => {
     const [isSignInForm, setIsSignInForm] = useState();
-    const navigate = useNavigate();
+
     const email = useRef(null);
     const password = useRef(null);
     const name = useRef(null);
@@ -34,13 +34,11 @@ const Login = () => {
               password.current.value
             )
               .then((userCredential) => {
-                  console.log("Signed up:", userCredential.user);
-                  navigate("/browse");
+                  const user = userCredential.user;
               })
               .catch((error) => {
                 console.error(error);
                   setErrorMessage("Already an User Please Sign In!");
-                  navigate("/browse");
               });
           
         }
