@@ -5,7 +5,11 @@ import { auth } from "../utils/firebase.js";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
+import { AVATAR_URL } from "../utils/constants.js";
+import { addUser } from "../utils/userSlice.js";
+import { useDispatch } from "react-redux";
 
 
 
@@ -15,12 +19,13 @@ const Login = () => {
     const email = useRef(null);
     const password = useRef(null);
     const name = useRef(null);
-    const [errorMessage,setErrorMessage] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(null);
+     const dispatch = useDispatch();
 
     const handleButtonclick = () => {
         //validating the data
         const message = checkValidData(email.current.value, password.current.value);
-
+       
         //setting error Message
         setErrorMessage(message);
 
@@ -35,6 +40,20 @@ const Login = () => {
             )
               .then((userCredential) => {
                   const user = userCredential.user;
+                  updateProfile(user, {
+                      displayName: name.current.value,
+                      photoURL:AVATAR_URL
+                  }).then(() => {
+                      const { uid, email, displayName, photoURL } = auth.currentUser;
+                      dispatch(
+                          addUser({
+                              uid: uid,
+                              email: email,
+                              displayName: displayName,
+                              photoURL:photoURL,
+                          })
+                      )
+                  })
               })
               .catch((error) => {
                 console.error(error);
